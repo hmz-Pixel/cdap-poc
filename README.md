@@ -8,3 +8,4 @@ exercise the workflow without access to Google's self-hosted runner).
 
 The label-persistence race: after a maintainer adds the `build` label, any subsequent `synchronize`
 event (push to the PR head) re-runs the workflow on the new SHA without re-review.
+# strong-payload demo benign baseline
