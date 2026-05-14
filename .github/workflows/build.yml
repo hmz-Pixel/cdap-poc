@@ -23,7 +23,7 @@ on:
 
 jobs:
   build:
-    runs-on: k8s-runner-build
+    runs-on: ubuntu-latest
 
     # We allow builds:
     # 1) When it's a merge into a branch
