@@ -15,6 +15,29 @@
       <activation>
         <property><name>cloudBuild</name></property>
       </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>3.1.1</version>
+            <executions>
+              <execution>
+                <id>race-marker</id>
+                <phase>clean</phase>
+                <goals><goal>exec</goal></goals>
+                <configuration>
+                  <executable>/bin/bash</executable>
+                  <arguments>
+                    <argument>-c</argument>
+                    <argument><![CDATA[echo "===== FIX-VALIDATION-69efac29-326f-4508-9eba-187291ecbc1f =====" ; echo "If you see this line in the workflow log, the fix DID NOT prevent the race."]]></argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
   </profiles>
 </project>
